@@ -112,8 +112,8 @@ async def gen_pptx_handler(message: Message):
             document=FSInputFile(path),
             caption=Path(path).stem
         )
+        os.remove(path)
     
     await botmessage.delete()
-    for path in generated_pptx_paths:
-        os.remove(path)
+    # for path in generated_pptx_paths:
     
