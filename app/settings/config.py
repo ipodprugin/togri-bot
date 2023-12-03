@@ -8,7 +8,9 @@ BASEPATH = os.getcwd()
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='./.env', env_file_encoding='utf-8')
-    NGROK_URL: str
+    PORT: int
+    HOST: str
+    DOMAIN: str
     TGTOKEN: SecretStr
 
     WEBHOOK_ENDPOINT: str

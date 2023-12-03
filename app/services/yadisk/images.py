@@ -1,5 +1,5 @@
 import os
-from ...settings.config import settings
+from settings.config import settings
 
 
 async def download_item(session, path: str, filename: str):

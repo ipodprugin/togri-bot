@@ -2,9 +2,9 @@ import logging
 
 from aiogram import Bot
 from aiogram.dispatcher.dispatcher import Dispatcher
-from app.settings.config import settings
+from settings.config import settings
 
-from app.tgbot.hendlers import genpptx
+from .hendlers import genpptx
 
 
 logging.basicConfig(level=logging.INFO)

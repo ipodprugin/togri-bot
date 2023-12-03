@@ -10,10 +10,10 @@ from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, FSInputFile
 
-from app.settings.config import settings
-from app.services.gsheets.data import get_data
-from app.services.yadisk.images import find_facade_img, find_plan_img, download_item
-from app.services.gen_pptx.render import render_pptx
+from settings.config import settings
+from services.gsheets.data import get_data
+from services.yadisk.images import find_facade_img, find_plan_img, download_item
+from services.gen_pptx.render import render_pptx
 
 from ..filters.input_validators import ValidTenderIdInput
 

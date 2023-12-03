@@ -1,12 +1,13 @@
 import logging
+import uvicorn
 
 from contextlib import asynccontextmanager
 
 from aiogram import types
 from fastapi import FastAPI
 
-from app.settings.config import settings
-from app.tgbot.bot import bot, dp
+from settings.config import settings
+from tgbot.bot import bot, dp
 
 
 @asynccontextmanager
@@ -28,3 +29,7 @@ async def bot_webhook(update: dict):
     print('--- update, ---\n', update)
     tgupdate = types.Update(**update)
     await dp._process_update(bot=bot, update=tgupdate)
+
+
+if __name__ == '__main__':
+    uvicorn.run('main:app', host=settings.HOST, port=settings.PORT, reload=True)

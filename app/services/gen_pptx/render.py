@@ -3,7 +3,7 @@ import jinja2
 
 from ..gsheets.models import SheetRowTenderContent
 
-from ...settings.config import settings
+from settings.config import settings
 
 from pptx import Presentation  
 
