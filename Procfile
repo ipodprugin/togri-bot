@@ -1,0 +1,1 @@
+worker: uvicorn app.main:app --reload
