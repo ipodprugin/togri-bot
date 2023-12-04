@@ -8,6 +8,8 @@ BASEPATH = os.getcwd()
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='./.env', env_file_encoding='utf-8')
+    DEBUG: bool = False
+
     PORT: int
     HOST: str
     DOMAIN: str
