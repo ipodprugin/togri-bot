@@ -31,9 +31,13 @@ async def bot_webhook(update: dict):
     await dp._process_update(bot=bot, update=tgupdate)
 
 
+async def run_polling():
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot)
+
 if __name__ == '__main__':
     if settings.DEBUG:
-        asyncio.run(dp.start_polling(bot))
+        asyncio.run(run_polling())
     else:
         uvicorn.run(
             'main:app', 

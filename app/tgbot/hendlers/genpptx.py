@@ -17,7 +17,7 @@ from services.gen_pptx.render import render_pptx
 
 from ..filters.input_validators import ValidTenderIdInput
 
-from .helpers import chunker
+# from .helpers import chunker
 
 router = Router()
 
@@ -63,62 +63,62 @@ async def gen_pptx_handler(message: Message):
     print('Opening gsheet by url...')
     sh = sa.open_by_url(settings.GSHEETURL)
 
-    tenders = message.text.split('\n')
+    _tenders = message.text.split('\n')
 
-    for _tenders in chunker(tenders, settings.CHUNK_SIZE):
-        print(f'Getting data for {_tenders}')
-        _tenders = await get_data(
-            gsheet=sh,
-            search_data=_tenders,
-            worksheet_title='Помещения (копия)'
+    # for _tenders in chunker(tenders, settings.CHUNK_SIZE):
+    print(f'Getting data for {_tenders}')
+    _tenders = await get_data(
+        gsheet=sh,
+        search_data=_tenders,
+        worksheet_title=settings.WORKSHEET_TITLE
+    )
+
+    await botmessage.edit_text("Скачиваю фотографии с Я.Диска 🌆")
+    print('downloading images from yadisk...')
+
+    basepath = 'app:/nonresidential/'
+    DISK_AUTH_HEADERS: str = {'accept': 'application/json', 'Authorization': 'OAuth %s' % settings.YADISK_OAUTH_TOKEN}
+    async with aiohttp.ClientSession(headers=DISK_AUTH_HEADERS) as session:
+        for tender in _tenders:
+            zippath = await download_item(session=session, path=basepath + tender.id, filename=tender.id)
+            tender.imgzippath = zippath
+
+    await botmessage.edit_text(f"Распаковываю скачанное 📦")
+    print('unpacking images from yadisk zip files...')
+
+    for tender in _tenders:
+        with zipfile.ZipFile(tender.imgzippath, "r") as zip_ref:
+            zip_ref.extractall(settings.IMGS_PATH)
+
+    await botmessage.edit_text(f"Генерирую презентации 🤖")
+
+    tenders_count = len(_tenders)
+    generated_pptx_paths = []
+    for index, tender in enumerate(_tenders):
+
+        progress_bar = f"{(index + 1) * '🟩'}{(tenders_count - index - 1) * '⬛️'}"
+        await botmessage.edit_text(f"Генерирую презентации для: {tender.id} 🤖\n\n{progress_bar}")
+        print('generating pptx for tender: %s...' % tender.id)
+
+        imgs_folder, _ = os.path.splitext(tender.imgzippath)
+        pictures = await form_pictures_dict(imgs_folder)
+        generated_pptx_paths.append(await render_pptx(tender=tender, pictures=pictures))
+
+    await botmessage.edit_text(f'Финальные штрихи. Ещё немного...')
+
+    for tender in _tenders:
+        print('deleting zip and its unpacked files: %s...' % tender.imgzippath)
+        imgs_folder, _ = os.path.splitext(tender.imgzippath)
+        shutil.rmtree(imgs_folder)
+        os.remove(tender.imgzippath)
+    
+    for path in generated_pptx_paths:
+        await message.reply_document(
+            document=FSInputFile(path),
+            caption=Path(path).stem
         )
-
-        await botmessage.edit_text("Скачиваю фотографии с Я.Диска 🌆")
-        print('downloading images from yadisk...')
-
-        basepath = 'app:/nonresidential/'
-        DISK_AUTH_HEADERS: str = {'accept': 'application/json', 'Authorization': 'OAuth %s' % settings.YADISK_OAUTH_TOKEN}
-        async with aiohttp.ClientSession(headers=DISK_AUTH_HEADERS) as session:
-            for tender in _tenders:
-                zippath = await download_item(session=session, path=basepath + tender.id, filename=tender.id)
-                tender.imgzippath = zippath
-
-        await botmessage.edit_text(f"Распаковываю скачанное 📦")
-        print('unpacking images from yadisk zip files...')
-
-        for tender in _tenders:
-            with zipfile.ZipFile(tender.imgzippath, "r") as zip_ref:
-                zip_ref.extractall(settings.IMGS_PATH)
-
-        await botmessage.edit_text(f"Генерирую презентации 🤖")
-
-        tenders_count = len(_tenders)
-        generated_pptx_paths = []
-        for index, tender in enumerate(_tenders):
-
-            progress_bar = f"{(index + 1) * '🟩'}{(tenders_count - index + 1) * '⬛️'}"
-            await botmessage.edit_text(f"Генерирую презентации для: {tender.id} 🤖\n\n{progress_bar}")
-            print('generating pptx for tender: %s...' % tender.id)
-
-            imgs_folder, _ = os.path.splitext(tender.imgzippath)
-            pictures = await form_pictures_dict(imgs_folder)
-            generated_pptx_paths.append(await render_pptx(tender=tender, pictures=pictures))
-
-        await botmessage.edit_text(f'Финальные штрихи. Ещё немного...')
-
-        for tender in _tenders:
-            print('deleting zip and its unpacked files: %s...' % tender.imgzippath)
-            imgs_folder, _ = os.path.splitext(tender.imgzippath)
-            shutil.rmtree(imgs_folder)
-            os.remove(tender.imgzippath)
-        
-        for path in generated_pptx_paths:
-            await message.reply_document(
-                document=FSInputFile(path),
-                caption=Path(path).stem
-            )
-            os.remove(path)
-        
+        os.remove(path)
+    
     await botmessage.delete()
         # for path in generated_pptx_paths:
         

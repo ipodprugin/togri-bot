@@ -21,6 +21,7 @@ class Settings(BaseSettings):
 
     GSHEETS_CREDS_PATH: str
     GSHEETURL: str
+    WORKSHEET_TITLE: str
 
     YADISK_OAUTH_TOKEN: str
     IMGS_PATH: str = '%s/img' % BASEPATH
