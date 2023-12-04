@@ -10,10 +10,10 @@ from settings.config import settings
 from tgbot.bot import bot, dp
 
 
-async def run():
+if __name__ == '__main__':
     if settings.DEBUG:
-        await bot.delete_webhook(drop_pending_updates=True)
-        await dp.start_polling(bot)
+        asyncio.run(bot.delete_webhook(drop_pending_updates=True))
+        asyncio.run(dp.start_polling(bot))
     else:
         @asynccontextmanager
         async def lifespan(app: FastAPI):
@@ -35,7 +35,8 @@ async def run():
             tgupdate = types.Update(**update)
             await dp._process_update(bot=bot, update=tgupdate)
 
-        uvicorn.run('main:app', host=settings.HOST, port=settings.PORT)
-
-if __name__ == '__main__':
-    asyncio.run(run())
+        uvicorn.run(
+            app,
+            host=settings.HOST, 
+            port=settings.PORT
+        )

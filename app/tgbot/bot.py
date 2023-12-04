@@ -27,5 +27,7 @@ def clean_folder(folder):
                 shutil.rmtree(file_path)
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+
 clean_folder(settings.PPTX_OUTPUT_DIRPATH)
 clean_folder(settings.IMGS_PATH)

@@ -101,9 +101,7 @@ async def gen_pptx_handler(message: Message):
             print('generating pptx for tender: %s...' % tender.id)
 
             imgs_folder, _ = os.path.splitext(tender.imgzippath)
-            print(f'----- {tender = }, {imgs_folder = }')
             pictures = await form_pictures_dict(imgs_folder)
-            print(f'----- {pictures = }')
             generated_pptx_paths.append(await render_pptx(tender=tender, pictures=pictures))
 
         await botmessage.edit_text(f'Финальные штрихи. Ещё немного...')
