@@ -96,7 +96,7 @@ async def gen_pptx_handler(message: Message):
     generated_pptx_paths = []
     for index, tender in enumerate(_tenders):
 
-        progress_bar = f"{(index + 1) * '🟩'}{(tenders_count - index - 1) * '⬛️'}"
+        progress_bar = f"{(index + 1) * '✅'}{(tenders_count - index - 1) * '🕐'}"
         await botmessage.edit_text(f"Генерирую презентации для: {tender.id} 🤖\n\n{progress_bar}")
         print('generating pptx for tender: %s...' % tender.id)
 
