@@ -65,7 +65,7 @@ async def gen_pptx_handler(message: Message):
 
     tenders = message.text.split('\n')
 
-    for _tenders in chunker(tenders, 5):
+    for _tenders in chunker(tenders, settings.CHUNK_SIZE):
         print(f'Getting data for {_tenders}')
         _tenders = await get_data(
             gsheet=sh,

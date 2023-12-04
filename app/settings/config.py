@@ -9,6 +9,7 @@ BASEPATH = os.getcwd()
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='./.env', env_file_encoding='utf-8')
     DEBUG: bool = False
+    CHUNK_SIZE: int
 
     PORT: int
     HOST: str
