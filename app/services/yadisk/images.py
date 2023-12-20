@@ -23,11 +23,12 @@ async def download_item(session, path: str, filename: str):
     return zippath
 
 
-async def find_plan_img(images):
+async def find_plan_img(images) -> list[int]:
+    ids = []
     for index, img in enumerate(images):
         if img.find('План этажа') != -1:
-            return index
-    return None
+            ids.append(index)
+    return ids
 
 
 async def find_facade_img(images):

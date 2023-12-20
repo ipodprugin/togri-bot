@@ -26,10 +26,10 @@ class Settings(BaseSettings):
     YADISK_OAUTH_TOKEN: str
     IMGS_PATH: str = '%s/img' % BASEPATH
     
-    PPTX_TEMPLATE_PATH: str = '%s/templates/template2.pptx' % BASEPATH
+    PPTX_TEMPLATE_PATH: str = '%s/templates/template3.pptx' % BASEPATH
     PPTX_OUTPUT_DIRPATH: str = '%s/generated' % BASEPATH
     PICTURES_PLACEHOLDERS: dict = {
-        'map': None,
+        'map': None, # Добавление фасада отменено в template3 шаблоне
         'plan': None,
         'Img1': None,
         'Img2': None,
@@ -40,6 +40,16 @@ class Settings(BaseSettings):
         'Img7': None,
         'Img8': None,
         'Img9': None,
+        'Img11': None,
+        'Img11': None,
+        'Img12': None,
+    }
+    PROCEDURE_FORMS: dict = {
+        'Открытый аукцион в электронной форме': 1,
+        'Открытый аукцион в электронной форме «преимущественное право»': 1,
+        'Открытый конкурс в электронной форме': 1,
+        'Публичное предложение': 2,
+        'Без объявления цены': 3,
     }
 
 settings = Settings()

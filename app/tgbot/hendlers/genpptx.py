@@ -3,6 +3,7 @@ import shutil
 import aiohttp
 import pygsheets
 import zipfile
+import pprint
 
 from pathlib import Path
 
@@ -11,7 +12,7 @@ from aiogram.filters import Command
 from aiogram.types import Message, FSInputFile
 
 from settings.config import settings
-from services.gsheets.data import get_data
+from services.data.gsheets import get_data
 from services.yadisk.images import find_facade_img, find_plan_img, download_item
 from services.gen_pptx.render import render_pptx
 
@@ -21,26 +22,28 @@ from ..filters.input_validators import ValidTenderIdInput
 
 router = Router()
 
+pp = pprint.PrettyPrinter(indent=4)
 
 async def form_pictures_dict(imgs_folder: str):
     # TODO: Перенести в более подходящее место
     pictures = settings.PICTURES_PLACEHOLDERS.copy()
     images = os.listdir(imgs_folder)
 
-    plan_img_index = await find_plan_img(images)
-    if plan_img_index is not None:
-        pictures['plan'] = f'{imgs_folder}/{images[plan_img_index]}'
-        images.pop(plan_img_index)
+    plan_imgs_indexes = await find_plan_img(images)
+    if plan_imgs_indexes is not None:
+        pictures['plan'] = f'{imgs_folder}/{images[plan_imgs_indexes[0]]}'
+        images = [img for i, img in enumerate(images) if i not in plan_imgs_indexes]
 
-    facade_img_index = await find_facade_img(images)
-    if facade_img_index is not None:
-        pictures['map'] = f'{imgs_folder}/{images[facade_img_index]}'
-        images.pop(facade_img_index)
+    # Добавление фасада отменено в template3 шаблоне
+    # facade_img_index = await find_facade_img(images)
+    # if facade_img_index is not None:
+    #     pictures['map'] = f'{imgs_folder}/{images[facade_img_index]}'
+    #     images.pop(facade_img_index)
 
-    for index, img in enumerate(images):
-        if index == 9:
+    for index, img in enumerate(images, start=1):
+        if index == 13:
             break
-        pictures[f'Img{index + 1}'] = f'{imgs_folder}/{img}'
+        pictures[f'Img{index}'] = f'{imgs_folder}/{img}'
     
     return pictures
 
@@ -54,7 +57,7 @@ async def cmd_start(message: Message):
 
 @router.message(
     F.text,
-    ValidTenderIdInput()
+    ValidTenderIdInput() # TODO: Добавить регулярку на адрес
 )
 async def gen_pptx_handler(message: Message):
     botmessage = await message.answer("Собираю данные...")

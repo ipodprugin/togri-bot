@@ -1,11 +1,12 @@
 import os
 import jinja2
 
-from ..gsheets.models import SheetRowTenderContent
+from ..data.models import SheetRowTenderContent
 
 from settings.config import settings
 
 from pptx import Presentation  
+from collections import defaultdict
 
 
 async def render_text(input_path, model, output_path, jinja2_env):
@@ -42,20 +43,33 @@ async def _render_text_frame(text_frame, model, jinja2_env):
                 last_ok = False
 
 
-async def replace_images_by_shape_text(images: dict, template_path: str, output_path: str):
+def delete_slide(presentation,  index):
+    xml_slides = presentation.slides._sldIdLst  # pylint: disable=W0212
+    slides = list(xml_slides)
+    xml_slides.remove(slides[index])
+
+
+async def replace_images_by_shape_text(images: dict, template_path: str, output_path: str, images_slides_ids: list[int] = [2, 3, 4]):
     # TODO: 
-    #       - Удалять плейсхолдер shape после вставки картинки
-    #       - Сделать фиксированный словарь плейсхолдеров и итерироваться по нему
-    #       - Удалять плейсхолдер, если для него нет картинки
+    #   - ОТРЕФАКТОРИТЬ ЭТОТ УЖАС
+    #   - Удалять плейсхолдер shape после вставки картинки
+    #   - Сделать фиксированный словарь плейсхолдеров и итерироваться по нему
+    #   - Удалять плейсхолдер, если для него нет картинки
     prs = Presentation(template_path)
+    found_index = -1
+    images_slides_ids_dict = defaultdict(int)
     for image in images:
         image_file = images[image]
         search_str = image
         for slide in prs.slides:
             for shape in slide.shapes:
                 if shape.has_text_frame:
-                    if shape.text.find(search_str) != -1:
+                    found_index = shape.text.find(search_str)
+                    if found_index != -1:
                         if image_file:
+                            slide_id = prs.slides.index(slide)
+                            if slide_id in images_slides_ids:
+                                images_slides_ids_dict[slide_id] += 1
                             horiz_ = shape.left
                             vert_ = shape.top
                             height_ = shape.height
@@ -63,10 +77,19 @@ async def replace_images_by_shape_text(images: dict, template_path: str, output_
                             slide.shapes.add_picture(image_file, horiz_, vert_, width_, height_)
                         sp = shape._sp
                         sp.getparent().remove(sp)
+                        break
+                if found_index != -1:
+                    break
+    
+    for slide_id in images_slides_ids_dict:
+        if images_slides_ids_dict[slide_id] < 3:
+            delete_slide(prs, slide_id)
+
     prs.save(output_path)
 
 
 async def render_pptx(tender: SheetRowTenderContent, pictures: dict):
+    print('------------ tender', tender)
     model = {
         "address": tender.address,
         "subway_stations": tender.subway_stations,
@@ -78,7 +101,14 @@ async def render_pptx(tender: SheetRowTenderContent, pictures: dict):
         "deposit": tender.deposit,
         "start_price": tender.start_price,
         "m1_start_price": tender.m1_start_price,
+        "min_price": tender.min_price,
+        "m1_min_price": tender.m1_min_price,
+        "procedure_form": tender.procedure_form,
+        "auction_step": tender.auction_step,
+        "price_decrease_step": tender.price_decrease_step,
     }
+
+    print('------------ model', model)
 
     jinja2_env = jinja2.Environment()
 
