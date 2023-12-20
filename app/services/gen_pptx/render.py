@@ -31,6 +31,14 @@ async def _render_text_frame(text_frame, model, jinja2_env):
                 rtemplate = jinja2_env.from_string(tmp_str)
                 rendered_text = rtemplate.render(model)
 
+                if rendered_text == model['address']:
+                    r = tmp_runs[0]
+                    r.text = rendered_text
+                    hlink = r.hyperlink
+                    hlink.address = 'https://yandex.ru/maps/?text=' + rendered_text
+                    rendered_text = ''
+                    tmp_runs.pop(0)
+
                 for run in tmp_runs:
                     run.text = rendered_text
                     rendered_text = "" # overwrites text
@@ -89,7 +97,6 @@ async def replace_images_by_shape_text(images: dict, template_path: str, output_
 
 
 async def render_pptx(tender: SheetRowTenderContent, pictures: dict):
-    print('------------ tender', tender)
     model = {
         "address": tender.address,
         "subway_stations": tender.subway_stations,
@@ -107,8 +114,6 @@ async def render_pptx(tender: SheetRowTenderContent, pictures: dict):
         "auction_step": tender.auction_step,
         "price_decrease_step": tender.price_decrease_step,
     }
-
-    print('------------ model', model)
 
     jinja2_env = jinja2.Environment()
 
