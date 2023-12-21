@@ -39,7 +39,10 @@ async def _get_gsheet_row_by_cell_value(
                 auction_step=row[-8],
                 price_decrease_step=row[-7],
                 min_price=min_price,
-                m1_min_price=m1_min_price
+                m1_min_price=m1_min_price,
+                tendering=row[-5],
+                lat=row[-4],
+                lon=row[-3],
             )
             print('-------- ROW', row)
             return row

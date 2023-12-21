@@ -35,7 +35,7 @@ async def _render_text_frame(text_frame, model, jinja2_env):
                     r = tmp_runs[0]
                     r.text = rendered_text
                     hlink = r.hyperlink
-                    hlink.address = 'https://yandex.ru/maps/?text=' + rendered_text
+                    hlink.address = f'https://yandex.ru/maps/?whatshere[point]={model["lon"]},{model["lat"]}&whatshere[zoom]=17'
                     rendered_text = ''
                     tmp_runs.pop(0)
 
@@ -113,6 +113,9 @@ async def render_pptx(tender: SheetRowTenderContent, pictures: dict):
         "procedure_form": tender.procedure_form,
         "auction_step": tender.auction_step,
         "price_decrease_step": tender.price_decrease_step,
+        "tendering": tender.tendering,
+        "lat": tender.lat,
+        "lon": tender.lon
     }
 
     jinja2_env = jinja2.Environment()

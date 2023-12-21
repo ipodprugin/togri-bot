@@ -19,4 +19,6 @@ class SheetRowTenderContent(BaseModel):
     procedure_form: int | None = None
     auction_step: str | None = None
     price_decrease_step: str | None = None
-
+    tendering: str | None = None
+    lat: str | None = None
+    lon: str | None = None
