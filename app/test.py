@@ -7,43 +7,44 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 models = [
-    {
-        'address': 'ЮВАО, район Печатники, проезд Проектируемый 5112, вл. 10, '
-                   'этаж 1, помещение 3Н, комнаты 30-42, 44, 45',
-        'applications_enddate': '15.01.2024',
-        'auction_step': '80337.0',
-        'deposit': '321348',
-        'district_name': 'Не определен',
-        'floor': 'Не указано',
-        'procedure_form': 1,
-        'm1_min_price': None,
-        'm1_start_price': 40523.08,
-        'min_price': 0.0,
-        'object_area': 79.3,
-        'price_decrease_step': '0.0',
-        'region_name': 'ЮВАО',
-        'start_price': '1606740.00',
-        'subway_stations': None
-    },
-    {
-        'address': 'улица Зои и Александра Космодемьянских, дом 4, корпус 3, '
-                   'Подвал № 0',
-        'applications_enddate': '15.01.2024',
-        'auction_step': '271675.0',
-        'deposit': '1086700',
-        'district_name': 'Войковский район',
-        'floor': 'Подвал',
-        'procedure_form': 2,
-        'm1_min_price': 33151.311775472845,
-        'm1_start_price': 66302.62,
-        'min_price': 5433500.0,
-        'object_area': 163.9,
-        'price_decrease_step': '543350.0',
-        'region_name': 'САО',
-        'start_price': '10867000.00',
-        'subway_stations': None,
-        'x': '5',
-    }
+    # {
+    #     'address': 'ЮВАО, район Печатники, проезд Проектируемый 5112, вл. 10, '
+    #                'этаж 1, помещение 3Н, комнаты 30-42, 44, 45',
+    #     'applications_enddate': '15.01.2024',
+    #     'auction_step': '80337.0',
+    #     'deposit': '321348',
+    #     'district_name': 'Не определен',
+    #     'floor': 'Не указано',
+    #     'procedure_form': 1,
+    #     'm1_min_price': None,
+    #     'm1_start_price': 40523.08,
+    #     'min_price': 0.0,
+    #     'object_area': 79.3,
+    #     'price_decrease_step': '0.0',
+    #     'region_name': 'ЮВАО',
+    #     'start_price': '1606740.00',
+    #     'subway_stations': None
+    # },
+    # {
+    #     'address': 'улица Зои и Александра Космодемьянских, дом 4, корпус 3, '
+    #                'Подвал № 0',
+    #     'applications_enddate': '15.01.2024',
+    #     'auction_step': '271675.0',
+    #     'deposit': '1086700',
+    #     'district_name': 'Войковский район',
+    #     'floor': 'Подвал',
+    #     'procedure_form': 2,
+    #     'm1_min_price': 33151.311775472845,
+    #     'm1_start_price': 66302.62,
+    #     'min_price': 5433500.0,
+    #     'object_area': 163.9,
+    #     'price_decrease_step': '543350.0',
+    #     'region_name': 'САО',
+    #     'start_price': '10867000.00',
+    #     'subway_stations': None,
+    #     'x': '5',
+    # }
+    {'address': 'Большая Черёмушкинская улица, дом 2, корпус 4, этаж 1', 'subway_stations': None, 'region_name': 'ЮЗАО', 'district_name': 'Академический район', 'object_area': 106.1, 'floor': '1 этаж', 'applications_enddate': '15.1.2024', 'deposit': '2767800', 'start_price': '13839000.00', 'm1_start_price': 260867.11, 'min_price': 0.0, 'm1_min_price': None, 'procedure_form': 1, 'auction_step': '691950.0', 'price_decrease_step': '0.0'},
 ]
 
 
@@ -61,6 +62,7 @@ async def _render_text_frame(text_frame, model, jinja2_env):
     tmp_str = ""
     tmp_runs = []
     for paragraph in text_frame.paragraphs:
+        print('----- paragraph.text -----\n', paragraph.text)
         for run in paragraph.runs:
             cur_text = run.text
             tmp_str += cur_text
@@ -69,9 +71,18 @@ async def _render_text_frame(text_frame, model, jinja2_env):
                 rtemplate = jinja2_env.from_string(tmp_str)
                 rendered_text = rtemplate.render(model)
 
+                if rendered_text == model['address']:
+                    r = tmp_runs[0]
+                    r.text = rendered_text
+                    hlink = r.hyperlink
+                    hlink.address = 'https://yandex.ru/maps/?text=' + rendered_text
+                    rendered_text = ''
+                    tmp_runs.pop(0)
+
                 for run in tmp_runs:
                     run.text = rendered_text
                     rendered_text = "" # overwrites text
+
 
                 tmp_str = ""
                 tmp_runs = []
@@ -86,3 +97,4 @@ for index, model in enumerate(models):
     output_path = f'{settings.PPTX_OUTPUT_DIRPATH}/{index}.pptx'
     # asyncio.run(render_text('templates/template4.pptx', model, output_path, jinja2_env))
     asyncio.run(render_text(settings.PPTX_TEMPLATE_PATH, model, output_path, jinja2_env))
+

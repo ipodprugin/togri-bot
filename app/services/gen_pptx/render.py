@@ -97,23 +97,50 @@ async def replace_images_by_shape_text(images: dict, template_path: str, output_
 
 
 async def render_pptx(tender: SheetRowTenderContent, pictures: dict):
+    """
+    TODO: Сделать в модели возможность указать гиперссылку и текст. 
+    Например: 
+
+    hyperlink = 'https://yandex.ru/maps/?whatshere[point]=%s,%s&whatshere[zoom]=17' % (model["lon"], model["lat"])
     model = {
+        "address": {
+            "text": tender.address,
+            "link": hyperlink,
+        },
+        "subway_stations": {
+            "text": tender.subway_stations,
+        },
+        ...
+    }
+    """
+
+    model = {
+        # 1 slide
         "address": tender.address,
         "subway_stations": tender.subway_stations,
         "region_name": tender.region_name,
         "district_name": tender.district_name,
         "object_area": tender.object_area,
         "floor": tender.floor,
-        "applications_enddate": tender.applications_enddate,
-        "deposit": tender.deposit,
+        "entrance_type": None,
+        "windows": None,
+        "ceilings": None,
+
+        # 2 slide
         "start_price": tender.start_price,
-        "m1_start_price": tender.m1_start_price,
         "min_price": tender.min_price,
-        "m1_min_price": tender.m1_min_price,
-        "procedure_form": tender.procedure_form,
         "auction_step": tender.auction_step,
         "price_decrease_step": tender.price_decrease_step,
+
+        "m1_start_price": tender.m1_start_price,
+        "m1_min_price": tender.m1_min_price,
+
+        "applications_enddate": tender.applications_enddate,
         "tendering": tender.tendering,
+        "deposit": tender.deposit,
+
+        # additional information not displayed in the presentation
+        "procedure_form": tender.procedure_form,
         "lat": tender.lat,
         "lon": tender.lon
     }
