@@ -88,6 +88,7 @@ async def gen_pptx_handler(message: Message):
     async with aiohttp.ClientSession(headers=DISK_AUTH_HEADERS) as session:
         for tender in _tenders:
             zippath = await download_item(session=session, path=basepath + tender.tender_id, filename=tender.tender_id)
+            print(f'------- {tender.tender_id = } {zippath = }')
             tender.imgzippath = zippath
 
     await botmessage.edit_text(f"Распаковываю скачанное 📦")

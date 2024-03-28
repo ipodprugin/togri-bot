@@ -15,7 +15,9 @@ async def get_data_from_db(
         async with session.get(f'{settings.PARSER_API_URL}/tenders', params=params) as response:
             if response.status == 200:
                 tenders = await response.json()
+                print('\n\n-------- tenders --------\n', tenders)
                 for index, tender in enumerate(tenders):
                     tenders[index] = SheetRowTenderContent.model_validate(tender)
+                print('\n-------- tenders --------\n', tenders)
                 return tenders
 
