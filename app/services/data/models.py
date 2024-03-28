@@ -21,7 +21,7 @@ class SheetRowTenderContent(BaseModel):
     procedure_form: str | None = None
     auction_step: Annotated[float | None, AfterValidator(lambda v: round(v, 2) if v else None)] = None
     price_decrease_step: Annotated[float | None, AfterValidator(lambda v: round(v, 2) if v else None)] = None
-    tendering: str | None = None
+    tendering: datetime | None = None
     lat: float | None = None
     lon: float | None = None
     entrance_type: str | None = None

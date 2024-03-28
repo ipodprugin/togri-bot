@@ -137,7 +137,7 @@ async def render_pptx(tender: SheetRowTenderContent, pictures: dict):
         "m1_min_price": tender.m1_min_price,
 
         "applications_enddate": tender.applications_enddate.strftime('%d.%m.%Y %H:%M') if tender.applications_enddate else None,
-        "tendering": tender.tendering,
+        "tendering": tender.tendering.strftime('%d.%m.%Y %H:%M') if tender.applications_enddate else None,
         "deposit": tender.deposit,
 
         # additional information not displayed in the presentation
