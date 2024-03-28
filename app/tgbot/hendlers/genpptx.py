@@ -87,7 +87,7 @@ async def gen_pptx_handler(message: Message):
     DISK_AUTH_HEADERS = {'accept': 'application/json', 'Authorization': 'OAuth %s' % settings.YADISK_OAUTH_TOKEN}
     async with aiohttp.ClientSession(headers=DISK_AUTH_HEADERS) as session:
         for tender in _tenders:
-            zippath = await download_item(session=session, path=basepath + tender.tender_id, filename=tender.tender_id)
+            zippath = await download_item(session=session, path=tender.imgzippath, filename=tender.tender_id)
             print(f'------- {tender.tender_id = } {zippath = }')
             tender.imgzippath = zippath
 
