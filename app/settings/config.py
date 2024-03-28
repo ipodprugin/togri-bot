@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     GSHEETS_CREDS_PATH: str
     GSHEETURL: str
     WORKSHEET_TITLE: str
+    PARSER_API_URL: str
 
     YADISK_OAUTH_TOKEN: str
     IMGS_PATH: str = '%s/img' % BASEPATH
@@ -53,7 +54,6 @@ class Settings(BaseSettings):
         'Публичное предложение': 2,
         'Без объявления цены': 3,
     }
-    PARSER_API_URL: str = 'http://176.109.105.87:8000/api/v1'
     TENDER_ID_REGEX: Pattern = re.compile(r'^\d{8,}$')
 
 
