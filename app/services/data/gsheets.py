@@ -25,7 +25,7 @@ async def _get_gsheet_row_by_cell_value(
 
             m1_min_price = "{:.2f}".format(min_price / object_area) if min_price and object_area else None
             row = SheetRowTenderContent(
-                id=row[1],
+                tender_id=row[1],
                 address=row[2],
                 region_name=row[3],
                 district_name=row[4],

@@ -1,5 +1,7 @@
 import os
+import re
 
+from typing import Pattern
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -51,5 +53,8 @@ class Settings(BaseSettings):
         'Публичное предложение': 2,
         'Без объявления цены': 3,
     }
+    PARSER_API_URL: str = 'http://176.109.105.87:8000/api/v1'
+    TENDER_ID_REGEX: Pattern = re.compile(r'^\d{8,}$')
+
 
 settings = Settings()

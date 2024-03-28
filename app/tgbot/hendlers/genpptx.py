@@ -8,11 +8,13 @@ import pprint
 from pathlib import Path
 
 from aiogram import Router, F
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from aiogram.types import Message, FSInputFile
 
 from settings.config import settings
 from services.data.gsheets import get_data
+from services.data.from_db import get_data_from_db
+from services.data.models import SheetRowTenderContent
 from services.yadisk.images import find_facade_img, find_plan_img, download_item
 from services.gen_pptx.render import render_pptx
 
@@ -49,7 +51,11 @@ async def form_pictures_dict(imgs_folder: str):
 
 
 @router.message(Command("pptx"))
-async def cmd_start(message: Message):
+async def cmd_start(
+    message: Message,
+    command: CommandObject
+):
+    print(command.args)
     await message.reply(
         f'Таблица: {settings.GSHEETURL}\n\nВведите tender_id объектов, для которых необходимо сгенерировать презентацию (каждый на новой строке).'
     )
@@ -61,29 +67,27 @@ async def cmd_start(message: Message):
 )
 async def gen_pptx_handler(message: Message):
     botmessage = await message.answer("Собираю данные...")
-    print('connecting to GSheets...')
-    sa = pygsheets.authorize(service_file=settings.GSHEETS_CREDS_PATH)
-    print('Opening gsheet by url...')
-    sh = sa.open_by_url(settings.GSHEETURL)
+    # print('connecting to GSheets...')
+    # sa = pygsheets.authorize(service_file=settings.GSHEETS_CREDS_PATH)
+    # print('Opening gsheet by url...')
+    # sh = sa.open_by_url(settings.GSHEETURL)
 
-    _tenders = message.text.split('\n')
+    params = message.text.split('\n')
 
-    # for _tenders in chunker(tenders, settings.CHUNK_SIZE):
-    print(f'Getting data for {_tenders}')
-    _tenders = await get_data(
-        gsheet=sh,
-        search_data=_tenders,
-        worksheet_title=settings.WORKSHEET_TITLE
-    )
+    print(f'Getting data for {params}')
+    _tenders = await get_data_from_db(params)
+    if not _tenders:
+        await botmessage.edit_text("Я не нашёл таких тендеров 🤷")
+        return
 
     await botmessage.edit_text("Скачиваю фотографии с Я.Диска 🌆")
     print('downloading images from yadisk...')
 
     basepath = 'app:/nonresidential/'
-    DISK_AUTH_HEADERS: str = {'accept': 'application/json', 'Authorization': 'OAuth %s' % settings.YADISK_OAUTH_TOKEN}
+    DISK_AUTH_HEADERS = {'accept': 'application/json', 'Authorization': 'OAuth %s' % settings.YADISK_OAUTH_TOKEN}
     async with aiohttp.ClientSession(headers=DISK_AUTH_HEADERS) as session:
         for tender in _tenders:
-            zippath = await download_item(session=session, path=basepath + tender.id, filename=tender.id)
+            zippath = await download_item(session=session, path=basepath + tender.tender_id, filename=tender.tender_id)
             tender.imgzippath = zippath
 
     await botmessage.edit_text(f"Распаковываю скачанное 📦")
@@ -100,8 +104,8 @@ async def gen_pptx_handler(message: Message):
     for index, tender in enumerate(_tenders):
 
         progress_bar = f"{(index + 1) * '✅'}{(tenders_count - index - 1) * '🕐'}"
-        await botmessage.edit_text(f"Генерирую презентации для: {tender.id} 🤖\n\n{progress_bar}")
-        print('generating pptx for tender: %s...' % tender.id)
+        await botmessage.edit_text(f"Генерирую презентации для: {tender.tender_id} 🤖\n\n{progress_bar}")
+        print('generating pptx for tender: %s...' % tender.tender_id)
 
         imgs_folder, _ = os.path.splitext(tender.imgzippath)
         pictures = await form_pictures_dict(imgs_folder)
@@ -114,14 +118,14 @@ async def gen_pptx_handler(message: Message):
         imgs_folder, _ = os.path.splitext(tender.imgzippath)
         shutil.rmtree(imgs_folder)
         os.remove(tender.imgzippath)
-    
+
     for path in generated_pptx_paths:
         await message.reply_document(
             document=FSInputFile(path),
             caption=Path(path).stem
         )
         os.remove(path)
-    
+
     await botmessage.delete()
         # for path in generated_pptx_paths:
-        
+

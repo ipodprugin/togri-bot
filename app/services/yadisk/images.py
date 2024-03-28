@@ -1,4 +1,6 @@
 import os
+import aiofiles
+
 from settings.config import settings
 
 
@@ -17,9 +19,11 @@ async def download_item(session, path: str, filename: str):
         os.mkdir('img')
     zippath = f'{settings.IMGS_PATH}/{filename}.zip'
     async with session.get(download_link) as resp:
-        with open(zippath, 'wb') as fd:
+        # with open(zippath, 'wb') as fd:
+        async with aiofiles.open(zippath, 'wb') as fd:
             async for chunk in resp.content.iter_chunked(1024):
-                fd.write(chunk)
+                await fd.write(chunk)
+            await fd.flush()
     return zippath
 
 
