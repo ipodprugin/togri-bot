@@ -7,6 +7,7 @@ from settings.config import settings
 
 from pptx import Presentation  
 from collections import defaultdict
+from datetime import datetime
 
 
 async def render_text(input_path, model, output_path, jinja2_env):
@@ -135,7 +136,7 @@ async def render_pptx(tender: SheetRowTenderContent, pictures: dict):
         "m1_start_price": tender.m1_start_price,
         "m1_min_price": tender.m1_min_price,
 
-        "applications_enddate": tender.applications_enddate,
+        "applications_enddate": tender.applications_enddate.strftime('%d.%m.%Y %H:%M') if tender.applications_enddate else None,
         "tendering": tender.tendering,
         "deposit": tender.deposit,
 

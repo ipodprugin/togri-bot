@@ -83,7 +83,6 @@ async def gen_pptx_handler(message: Message):
     await botmessage.edit_text("Скачиваю фотографии с Я.Диска 🌆")
     print('downloading images from yadisk...')
 
-    basepath = 'app:/nonresidential/'
     DISK_AUTH_HEADERS = {'accept': 'application/json', 'Authorization': 'OAuth %s' % settings.YADISK_OAUTH_TOKEN}
     async with aiohttp.ClientSession(headers=DISK_AUTH_HEADERS) as session:
         for tender in _tenders:
@@ -128,5 +127,4 @@ async def gen_pptx_handler(message: Message):
         os.remove(path)
 
     await botmessage.delete()
-        # for path in generated_pptx_paths:
 
