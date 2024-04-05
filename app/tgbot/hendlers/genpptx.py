@@ -67,13 +67,8 @@ async def cmd_start(
 )
 async def gen_pptx_handler(message: Message):
     botmessage = await message.answer("Собираю данные...")
-    # print('connecting to GSheets...')
-    # sa = pygsheets.authorize(service_file=settings.GSHEETS_CREDS_PATH)
-    # print('Opening gsheet by url...')
-    # sh = sa.open_by_url(settings.GSHEETURL)
 
     params = message.text.split('\n')
-
     print(f'Getting data for {params}')
     _tenders = await get_data_from_db(params)
     if not _tenders:
@@ -87,15 +82,20 @@ async def gen_pptx_handler(message: Message):
     async with aiohttp.ClientSession(headers=DISK_AUTH_HEADERS) as session:
         for tender in _tenders:
             zippath = await download_item(session=session, path=tender.imgzippath, filename=tender.tender_id)
-            print(f'------- {tender.tender_id = } {zippath = }')
             tender.imgzippath = zippath
 
     await botmessage.edit_text(f"Распаковываю скачанное 📦")
     print('unpacking images from yadisk zip files...')
 
     for tender in _tenders:
-        with zipfile.ZipFile(tender.imgzippath, "r") as zip_ref:
-            zip_ref.extractall(settings.IMGS_PATH)
+        _imgs_folder = f'{settings.IMGS_PATH}/{tender.tender_id}/'
+        with zipfile.ZipFile(tender.imgzippath, "r") as zf:
+            for index, info in enumerate(zf.infolist()):
+                outname = info.filename
+                if outname.endswith('.jpg'):
+                    plan_imgs_indexes = await find_plan_img([outname])
+                    info.filename = 'План этажа.jpg' if plan_imgs_indexes else f'{index}.jpg'
+                    zf.extract(info, path=_imgs_folder)
 
     await botmessage.edit_text(f"Генерирую презентации 🤖")
 
@@ -113,18 +113,18 @@ async def gen_pptx_handler(message: Message):
 
     await botmessage.edit_text(f'Финальные штрихи. Ещё немного...')
 
-    for tender in _tenders:
-        print('deleting zip and its unpacked files: %s...' % tender.imgzippath)
-        imgs_folder, _ = os.path.splitext(tender.imgzippath)
-        shutil.rmtree(imgs_folder)
-        os.remove(tender.imgzippath)
-
     for path in generated_pptx_paths:
         await message.reply_document(
             document=FSInputFile(path),
             caption=Path(path).stem
         )
         os.remove(path)
+
+    for tender in _tenders:
+        print('deleting zip and its unpacked files: %s...' % tender.imgzippath)
+        imgs_folder, _ = os.path.splitext(tender.imgzippath)
+        shutil.rmtree(imgs_folder)
+        os.remove(tender.imgzippath)
 
     await botmessage.delete()
 
